@@ -1,0 +1,174 @@
+<html lang="es">
+
+<head>
+    <title>Airbnb a Barcelona</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="autor" />
+    <meta name="description" content="descripción página">
+    <meta name="robots" content="index,follow">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.4.0/dist/leaflet.css" />
+    <script>
+        L_PREFER_CANVAS = true;
+    </script>
+    <script src="https://unpkg.com/leaflet@1.4.0/dist/leaflet.js"></script>
+    <script src="https://calvinmetcalf.github.io/leaflet-ajax/dist/leaflet.ajax.js"></script>
+
+    <script src="https://labs.easyblog.it/maps/leaflet-search/src/leaflet-search.js"></script>
+    <link rel="stylesheet" href="https://labs.easyblog.it/maps/leaflet-search/src/leaflet-search.css" />
+
+
+    <style>
+        body {
+            font-family: 'Lato', sans-serif;
+            font-weight: 400;
+            font-size: 16px;
+            line-height: 1.7;
+            color: #eee;
+            overflow: hidden;
+
+        }
+
+        .header {
+            text-align: center;
+            background:
+                linear-gradient(to right bottom,
+                rgba(76, 216, 255, 0.8),
+                rgba(30, 108, 217, 0.8));
+            background-position: top;
+            position: relative;
+
+        }
+
+        #map {
+            height: 100%;
+            width: 100%;
+        }
+    </style>
+    <script>
+        var map, osm, esri;
+        var geojson, Airbnbbcnsharedroom, Airbnbbcnprivateroom, Airbnbbcnentirehome;
+        var controlCapas;
+
+        var controlEscala;
+
+        function Init() {
+
+            map = L.map('map', {
+                center: [41.3954, 2.16859],
+                zoom: 13
+            });
+            esri = L.tileLayer(
+                'http://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                    maxZoom: 20,
+                    minZoom: 1,
+                    attribution: 'Tiles © Esri',
+                }).addTo(map);
+
+            osm = L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                minZoom: 1,
+                attribution: 'OSM'
+            });
+
+            Airbnbbcnsharedroom = new L.GeoJSON.AJAX('datos/Airbnbbcnsharedroom.geojson', {
+                maxZoom: 19,
+                minZoom: 10,
+                onEachFeature: function (feature, layer) {
+                    popupContent = "<b>" + feature.properties.ROOM_TYPE + "</b><br>" + feature.properties
+                        .URL + "</b><br>" + feature.properties.PRICE + "</b>";
+                    layer.bindPopup(popupContent);
+                },
+                pointToLayer: function (feature, latlng) {
+                    return L.circleMarker(latlng, {
+                        radius: 4,
+                        fillColor: "red",
+                        color: "white",
+                        weight: 1,
+                        opacity: 1,
+                        fillOpacity: 0.8
+
+                    });
+                }
+            }).addTo(map);
+
+            Airbnbbcnprivateroom = new L.GeoJSON.AJAX('datos/Airbnbbcnprivateroom.geojson', {
+                maxZoom: 19,
+                minZoom: 10,
+                onEachFeature: function (feature, layer) {
+                    popupContent = "<b>" + feature.properties.ROOM_TYPE + "</b><br>" + feature.properties
+                        .URL + "</b><br>" + feature.properties.PRICE + "</b>";
+                    layer.bindPopup(popupContent);
+                },
+                pointToLayer: function (feature, latlng) {
+                    return L.circleMarker(latlng, {
+                        radius: 4,
+                        fillColor: "green",
+                        color: "white",
+                        weight: 1,
+                        opacity: 1,
+                        fillOpacity: 0.8
+                    });
+                }
+            }).addTo(map);
+
+            Airbnbbcnentirehome = new L.GeoJSON.AJAX('datos/Airbnbbcnentirehome.geojson', {
+                maxZoom: 19,
+                minZoom: 10,
+                onEachFeature: function (feature, layer) {
+                    popupContent = "<b>" + feature.properties.ROOM_TYPE + "</b><br>" + feature.properties
+                        .URL + "</b><br>" + feature.properties.PRICE + "</b>";
+                    layer.bindPopup(popupContent);
+                },
+                pointToLayer: function (feature, latlng) {
+                    return L.circleMarker(latlng, {
+                        radius: 4,
+                        fillColor: "blue",
+                        color: "white",
+                        weight: 1,
+                        opacity: 1,
+                        fillOpacity: 0.8
+                    });
+                }
+            }).addTo(map);
+
+            var airbnb = L.layerGroup([Airbnbbcnentirehome, Airbnbbcnprivateroom, Airbnbbcnsharedroom,])
+            var baseMaps = {
+                "Orto_esri": esri,
+                "Mapa_osm": osm
+            };
+            var overlayMaps = {
+                "Shared room (RED)": Airbnbbcnsharedroom,
+                "Private room (GREEN)": Airbnbbcnprivateroom,
+                "Entire Home (BLUE)": Airbnbbcnentirehome
+            };
+
+            L.control.layers(baseMaps, overlayMaps)
+                .addTo(map);
+
+            var searchControl = new L.Control.Search({
+                layer: airbnb,
+                propertyName: 'PRICE',
+                circleLocation: true,
+
+                moveToLocation: function (latlng) {
+
+                    map.setView(latlng, 17);
+                }
+            });
+
+            map.addControl(searchControl);
+
+        };
+    </script>
+</head>
+
+<body onload="Init()">
+    <div class=header>
+        <h1 style="font-family:verdana;">Allotjaments d'AirBnB a Barcelona segons tipologia. Abril 2018</h1>
+        <p>Font: Proyecto DataHippo a partir de Airbnb.es </p>
+    </div>
+    <div id="map"></div>
+</body>
+
+</html>
